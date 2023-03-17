@@ -38,7 +38,9 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+SELECT COUNT(*) AS num_rows
+FROM bigquery-public-data.new_york_311.311_service_requests
+
 
 ```
 
@@ -48,7 +50,9 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+SELECT COUNT(*) AS num_open_cases
+FROM bigquery-public-data.new_york_311.311_service_requests
+WHERE status = 'Open'
 
 ```
 
@@ -56,7 +60,10 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+SELECT *
+FROM bigquery-public-data.new_york_311.311_service_requests
+WHERE incident_zip = '11229'
+
 
 ```
 
@@ -66,7 +73,10 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+SELECT complaint_type, COUNT(*) AS num_complaints
+FROM bigquery-public-data.new_york_311.311_service_requests
+GROUP BY complaint_type
+ORDER BY num_complaints DESC
 
 ```
 
@@ -74,7 +84,11 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+SELECT agency, COUNT(DISTINCT agency_name) AS num_distinct_names
+FROM bigquery-public-data.new_york_311.311_service_requests
+GROUP BY agency
+ORDER BY num_distinct_names DESC
+
 
 ```
 
@@ -84,7 +98,12 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+SELECT agency_name, COUNT(*) AS num_complaints
+FROM bigquery-public-data.new_york_311.311_service_requests
+GROUP BY agency_name
+ORDER BY num_complaints DESC
+LIMIT 5
+
 
 ```
 
@@ -95,7 +114,12 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+SELECT complaint_type, COUNT(*) AS num_open_cases
+FROM bigquery-public-data.new_york_311.311_service_requests
+WHERE status = 'Open'
+GROUP BY complaint_type
+ORDER BY num_open_cases DESC
+
 
 ```
 
@@ -106,7 +130,11 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+SELECT unique_key, COUNT(*) AS num_duplicates
+FROM bigquery-public-data.new_york_311.311_service_requests
+GROUP BY unique_key
+HAVING COUNT(*) > 1
+
 
 ```
 
@@ -121,7 +149,11 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+SELECT gender, COUNT(*) AS num_trips
+FROM bigquery-public-data.new_york_citibike.citibike_trips
+WHERE gender IN ('Male', 'Female')
+GROUP BY gender
+
 
 ```
 
@@ -129,7 +161,8 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+SELECT AVG(duration_minutes) AS avg_duration, MIN(duration_minutes) AS min_duration, MAX(duration_minutes) AS max_duration
+FROM bigquery-public-data.new_york_citibike
 
 ```
 
@@ -139,7 +172,21 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+WITH starts AS (
+  SELECT start_station_name, COUNT(*) AS num_starts
+  FROM bigquery-public-data.new_york_citibike.citibike_trips
+  GROUP BY start_station_name
+),
+ends AS (
+  SELECT end_station_name, COUNT(*) AS num_ends
+  FROM bigquery-public-data.new_york_citibike.citibike_trips
+  GROUP BY end_station_name
+)
+SELECT s.start_station_name AS station_name, s.num_starts AS total_starts, e.num_ends AS total_ends, (s.num_starts + e.num_ends) AS total_trips
+FROM starts AS s
+JOIN ends AS e ON s.start_station_name = e.end_station_name
+ORDER BY total_trips DESC
+
 
 ```
 
@@ -155,7 +202,11 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+SELECT advertiser_name, SUM(spend_usd) AS total_spend
+FROM bigquery-public-data.google_political_ads.advertiser_weekly_spend
+GROUP BY advertiser_name
+ORDER BY total_spend DESC
+
 
 ```
 
@@ -165,7 +216,7 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+
 
 ```
 
@@ -175,7 +226,9 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+SELECT SUM(spend_usd) AS total_spend
+FROM bigquery-public-data.google_political_ads.advertiser_weekly_spend
+WHERE advertiser_name = 'TOM STEYER 2020'
 
 ```
 
@@ -185,7 +238,10 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+SELECT COUNT(DISTINCT creative_id) AS num_ads
+FROM bigquery-public-data.google_political_ads.creative_stats
+WHERE advertiser_name = 'TOM STEYER 2020'
+
 
 ```
 
@@ -195,7 +251,12 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+SELECT advertiser_name, COUNT(DISTINCT creative_id) AS num_ads
+FROM bigquery-public-data.google_political_ads.creative_stats
+GROUP BY advertiser_name
+ORDER BY num_ads DESC
+LIMIT 1
+
 
 ```
 
@@ -205,7 +266,16 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+SELECT aw.advertiser_name, SUM(cs.spend_usd) AS total_spend_usd
+FROM `bigquery-public-data.google_political_ads.creative_stats` AS cs
+JOIN (
+  SELECT advertiser_id, advertiser_name, week_start_date, spend_usd
+  FROM `bigquery-public-data.google_political_ads.advertiser_weekly_spend`
+) AS aw
+ON cs.advertiser_id = aw.advertiser_id AND cs.week_start_date = aw.week_start_date
+GROUP BY aw.advertiser_name
+ORDER BY total_spend_usd DESC
+
 
 ```
   
@@ -223,7 +293,32 @@ For this section of the exercise we will be using the `bigquery-public-data.new_
 
 ```
 
-[YOUR ANSWER HERE]
+WITH
+  zip_2000 AS (
+  SELECT
+    zipcode,
+    population
+  FROM
+    `bigquery-public-data.census_bureau_usa.population_by_zip_2000`),
+  zip_2010 AS (
+  SELECT
+    zipcode,
+    population
+  FROM
+    `bigquery-public-data.census_bureau_usa.population_by_zip_2010`)
+SELECT
+  z_2000.zipcode,
+  z_2000.population AS population_2000,
+  z_2010.population AS population_2010
+FROM
+  zip_2000 AS z_2000
+JOIN
+  zip_2010 AS z_2010
+ON
+  z_2000.zipcode = z_2010.zipcode
+ORDER BY
+  z_2000.zipcode
+
 
 ```
 
